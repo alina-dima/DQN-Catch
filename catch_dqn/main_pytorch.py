@@ -4,7 +4,18 @@ import numpy as np
 from catch import CatchEnv
 from dqn_pytorch import DQN_Agent
 
+
 def test(env, agent, device, run):
+    """
+    Test agent performance by averaging rewards over 10 episodes.
+    The rewards are printed to a .txt file.
+
+    Args:
+        env: Catch environment
+        agent: DQN agent
+        device: CPU or GPU
+        run: run number
+    """
     rewards = []
 
     for _ in range(10):
@@ -20,7 +31,7 @@ def test(env, agent, device, run):
                 rewards.append(reward)
                 break
             current_state = next_state
-    
+
     with open('run_' + str(run+1) + '.txt', 'a') as f:
         f.write(str(np.mean(rewards))+'\n')
 
@@ -32,15 +43,18 @@ if __name__ == "__main__":
 
     state_shape = env.state_shape()
     num_actions = env.get_num_actions()
-    
+
     for run in range(5):
+        # Get 5 different runs
         agent = DQN_Agent(num_actions, state_shape, device)
 
         num_transitions = 0
         start_time = time.time()
-        for e in range(4000):
+        for e in range(3000):
+            # Main training loop
             current_state = np.array([np.transpose(np.array(env.reset()), (2, 0, 1))])
             done = False
+
             while not done:
                 num_transitions += 1
                 action = agent.select_action(current_state)
@@ -55,7 +69,8 @@ if __name__ == "__main__":
 
                 current_state = next_state
 
+            # Test performance of agent every 10 episodes
             if (e+1) % 10 == 0:
-                print(f"Elapsed time: {time.time() - start_time}s")
-                print(f"Epsilon: {agent.epsilon}")
+                # print(f"Elapsed time: {time.time() - start_time}s")
+                # print(f"Epsilon: {agent.epsilon}")
                 test(env, agent, device, run)

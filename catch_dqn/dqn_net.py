@@ -1,6 +1,8 @@
 import torch.nn as nn
 
+
 class DQNet(nn.Module):
+    """ DQN network """
     def __init__(self, num_actions, fps):
         super(DQNet, self).__init__()
         self.conv_layers = nn.Sequential(
@@ -18,5 +20,6 @@ class DQNet(nn.Module):
         )
 
     def forward(self, x):
+        """ Forward pass """
         output_conv_layers = self.conv_layers(x).view(x.size()[0], -1)
         return self.fc_layers(output_conv_layers)

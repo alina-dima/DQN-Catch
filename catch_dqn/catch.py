@@ -1,3 +1,5 @@
+# The environment was provided by the course coordinator
+
 from skimage.transform import resize
 import random
 import numpy as np

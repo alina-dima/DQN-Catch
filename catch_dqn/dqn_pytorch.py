@@ -6,6 +6,7 @@ from dqn_net import DQNet
 
 
 class DQN_Agent():
+    """ DQN agent """
     def __init__(self, num_actions, state_shape, device):
         self.num_actions = num_actions
         self.state_shape = state_shape
@@ -23,12 +24,15 @@ class DQN_Agent():
         self.policy_net = DQNet(num_actions, state_shape[0]).to(device)
         self.target_net = DQNet(num_actions, state_shape[0]).to(device)
         self.target_net.load_state_dict(self.policy_net.state_dict())
-        self.optimizer = torch.optim.RMSprop(self.policy_net.parameters(), lr=0.00025, momentum=0.95, eps=0.01)
+        self.optimizer = torch.optim.RMSprop(self.policy_net.parameters(), \
+                                             lr=0.00025, momentum=0.95, eps=0.01)
 
     def update_target(self):
+        """ Update target network """
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
     def select_action(self, state):
+        """ Select action using epsilon-greedy policy """
         if random.uniform(0, 1) < self.epsilon:
             return random.randint(0, self.num_actions-1)
 
@@ -36,6 +40,7 @@ class DQN_Agent():
         return self.policy_net(state).max(1)[1].view(1, 1).item()
 
     def store_transition(self, state, action, reward, next_state, terminal):
+        """ Store transition in replay memory """
         if len(self.replay_memory) == self.replay_capacity:
             self.replay_memory.pop()
 
@@ -48,6 +53,7 @@ class DQN_Agent():
         })
 
     def sample_replay(self, minibatch_size):
+        """ Sample minibatch from replay memory """
         minibatch = random.sample(self.replay_memory, minibatch_size)
         states = np.array([transition['state'][0] for transition in minibatch])
         states = torch.Tensor(states).to(self.device)
@@ -60,9 +66,11 @@ class DQN_Agent():
         return states, actions, rewards, next_states, terminals
 
     def decrease_epsilon(self):
+        """ Decrease epsilon by decay rate """
         self.epsilon = max(self.min_epsilon, self.epsilon-self.epsilon_decay)
 
     def train(self, minibatch_size):
+        """ Train network using minibatch of transitions """
         states, actions, rewards, next_states, terminals = self.sample_replay(minibatch_size)
         q_values = self.policy_net(states).gather(1, actions.type(torch.int64).unsqueeze(-1)).squeeze(-1)
 
